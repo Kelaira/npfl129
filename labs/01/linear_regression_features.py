@@ -18,21 +18,24 @@ def main(args):
     # Create the data
     xs = np.linspace(0, 7, num=args.data_size)
     ys = np.sin(xs) + np.random.RandomState(args.seed).normal(0, 0.2, size=args.data_size)
-
     rmses = []
     for order in range(1, args.range + 1):
         # TODO: Create features of x^1, ..., x^order.
-
+        if (order == 1):
+            f_xs = [[x] for x in xs]
+        else:
+            f_xs = np.c_[f_xs, [x**order for x in xs]]
         # TODO: Split the data into a train set and a test set.
         # Use `sklearn.model_selection.train_test_split` method call, passing
         # arguments `test_size=args.test_size, random_state=args.seed`.
-
+        train_data, test_data, train_target, test_target = sklearn.model_selection.train_test_split(f_xs, ys, test_size=args.test_size, random_state=args.seed)
         # TODO: Fit a linear regression model using `sklearn.linear_model.LinearRegression`.
-
+        model = sklearn.linear_model.LinearRegression()
+        model.fit(train_data, train_target)
         # TODO: Predict targets on the test set using the trained model.
-
+        predicted = model.predict(test_data)
         # TODO: Compute root mean square error on the test set predictions
-        rmse = None
+        rmse = sklearn.metrics.mean_squared_error(test_target, predicted, squared=False)
 
         rmses.append(rmse)
 
