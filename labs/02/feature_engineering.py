@@ -47,7 +47,7 @@ def main(args):
     
     i = "tr"
     transformers = []
-    for arr, encoder in zip([int_train, real_train], [sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False)]):
+    for arr, encoder in zip([int_train, real_train], [sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), sklearn.preprocessing.StandardScaler()]):
         
         if len(arr) > 0:
             transformers.append((i,encoder,arr))
@@ -56,7 +56,7 @@ def main(args):
     ct = sklearn.compose.ColumnTransformer(transformers = transformers)
 
     train_data1 = ct.fit_transform(train_data)
-    test_data1 = ct.transform(train_data)
+    test_data1 = ct.transform(test_data)
     # TODO: Generate polynomial features of order 2 from the current features.
     # If the input values are [a, b, c, d], you should generate
     # [a^2, ab, ac, ad, b^2, bc, bd, c^2, cd, d^2]. You can generate such polynomial
