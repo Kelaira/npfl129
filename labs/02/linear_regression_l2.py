@@ -19,18 +19,27 @@ def main(args):
     # Load Boston housing dataset
     dataset = sklearn.datasets.load_boston()
 
-    # TODO: Split the dataset into a train set and a test set.
+    # Split the dataset into a train set and a test set.
     # Use `sklearn.model_selection.train_test_split` method call, passing
     # arguments `test_size=args.test_size, random_state=args.seed`.
-
+    train_data, test_data, train_target, test_target = sklearn.model_selection.train_test_split(dataset.data, dataset.target, test_size = args.test_size, random_state = args.seed)
+    
     lambdas = np.geomspace(0.01, 100, num=500)
-    # TODO: Using `sklearn.linear_model.Ridge`, fit the train set using
+    # Using `sklearn.linear_model.Ridge`, fit the train set using
     # L2 regularization, employing above defined lambdas.
     # For every model, compute the root mean squared error
     # (do not forget `sklearn.metrics.mean_squared_error`) and return the
     # lambda producing lowest test error.
-    best_lambda = None
-    best_rmse = None
+    rmses = []
+    for l in lambdas: 
+        model = sklearn.linear_model.Ridge(alpha=l)
+        model.fit(train_data, train_target)
+        predicted = model.predict(test_data)
+
+        rmse = sklearn.metrics.mean_squared_error(test_target, predicted, squared=False)
+        rmses.append((rmse, l))
+
+    (best_rmse, best_lambda) = min(rmses)
 
     if args.plot:
         # This block is not required to pass in ReCodEx, however, it is useful
