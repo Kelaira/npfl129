@@ -11,7 +11,7 @@ import pandas
 
 parser = argparse.ArgumentParser()
 # These arguments will be set appropriately by ReCodEx, even if you change them.
-parser.add_argument("--dataset", default="linnerud", type=str, help="Standard sklearn dataset to load")
+parser.add_argument("--dataset", default="boston", type=str, help="Standard sklearn dataset to load")
 parser.add_argument("--recodex", default=False, action="store_true", help="Running in ReCodEx")
 parser.add_argument("--seed", default=42, type=int, help="Random seed")
 parser.add_argument("--test_size", default=0.5, type=lambda x:int(x) if x.isdigit() else float(x), help="Test set size")
@@ -46,17 +46,14 @@ def main(args):
 
     int_test = np.all(test_data.astype(int) == test_data, axis=0)
     inverse_int_test = [not x for x in int_test]
-    
     int_data = []
     inverse_data = []
-    transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data)
-    transformer_st = ("second", sklearn.preprocessing.StandardScaler(), inverse_data)
     
     if (True in int_train) and (True in inverse_int_train):
         int_data = int_train
         inverse_data = inverse_int_train
         transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data)
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(), inverse_data)
+        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data)
         ct_train = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot, transformer_st])
     elif (True in int_train):
         int_data = int_train
@@ -64,14 +61,14 @@ def main(args):
         ct_train = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot])
     else:
         inverse_data = inverse_int_train
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(), inverse_data) 
+        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data) 
         ct_train = sklearn.compose.ColumnTransformer(transformers= [transformer_st])
         
     if (True in int_test) and (True in inverse_int_test):
         int_data = int_test 
         inverse_data = inverse_int_test
         transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data) 
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(), inverse_data) 
+        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data) 
         ct_test = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot, transformer_st])
     elif (True in int_test): 
         int_data = int_test
@@ -79,12 +76,11 @@ def main(args):
         ct_test = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot])
     else:
         inverse_data = inverse_int_test
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(), inverse_data) 
+        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data) 
         ct_test = sklearn.compose.ColumnTransformer(transformers= [transformer_st]) 
     
     train_data1 = ct_train.fit_transform(train_data)
     test_data1 = ct_test.fit_transform(test_data)
-    
     # TODO: Generate polynomial features of order 2 from the current features.
     # If the input values are [a, b, c, d], you should generate
     # [a^2, ab, ac, ad, b^2, bc, bd, c^2, cd, d^2]. You can generate such polynomial
@@ -101,7 +97,6 @@ def main(args):
     # TODO: Fit the feature processing steps on the training data.
     # Then transform the training data into `train_data` (you can do both these
     # steps using `fit_transform`), and transform testing data to `test_data`.
-
     return train_data, test_data
 
 
