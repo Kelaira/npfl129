@@ -26,12 +26,13 @@ def main(args):
     # Generate an artifical regression dataset
     data, target = sklearn.datasets.make_regression(n_samples=args.data_size, random_state=args.seed)
 
-    # TODO: Append a constant feature with value 1 to the end of every input data
-
-    # TODO: Split the dataset into a train set and a test set.
+    # Append a constant feature with value 1 to the end of every input data
+    data = np.c_[data, np.ones(data.shape[0])]
+    
+    # Split the dataset into a train set and a test set.
     # Use `sklearn.model_selection.train_test_split` method call, passing
     # arguments `test_size=args.test_size, random_state=args.seed`.
-    train_data, test_data, train_target, test_target = None, None, None, None
+    train_data, test_data, train_target, test_target = sklearn.model_selection.train_test_split(data, target, test_size = args.test_size, random_state = args.seed)
 
     # Generate initial linear regression weights
     weights = generator.uniform(size=train_data.shape[1])
@@ -45,12 +46,49 @@ def main(args):
         # A gradient for example (x_i, t_i) is `(x_i^T weights - t_i) * x_i`,
         # and the SGD update is `weights = weights - args.learning_rate * gradient`.
         # You can assume that `args.batch_size` exactly divides `train_data.shape[0]`.
+        i = 0
+        for k in range(train_data.shape[0]//args.batch_size):
+            
+            gradient_sum = 0
+            for offset in range(args.batch_size):
+                index = permutation[i+offset]
+                print("weights")
+                print(weights)
+                print("data")
+                print(train_data[index])
+                print("target")
+                print(train_target)
+                print("transpose")
+                print(np.transpose(train_data[index]))
+                print("first matmul")
+                print(np.transpose(train_data[index]) @ weights)
+                print("sub")
+                print(np.transpose(train_data[index]) @ weights - train_target[index])
+                gradient = ( np.transpose(train_data[index]) @ weights - train_target[index] ) @ train_data[index]
+                gradient_sum += gradient
+            average_gradient = gradient_sum/args.batch_size
+            
+            # SGD update
+            weights = weights - args.learning_rate * average_gradient
+                
+            i = i + batch_size 
 
         # TODO: Append current RMSE on train/test to train_rmses/test_rmses.
+        predicted_train = train_data @ weights
+        predicted_test = test_data @ weights
+        rmse_train = sklearn.metrics.mean_squared_error(train_target, predicted_train, squared=False)
+        rmse_test = sklearn.metrics.mean_squared_error(test_target, predicted_test, squared=False)
+        train_rmses.append(rmse_train)
+        test_rmses.append(rmse_test)
+
+
 
     # TODO: Compute into `explicit_rmse` test data RMSE when
     # fitting `sklearn.linear_model.LinearRegression` on train_data.
-    explicit_rmse = None
+    model = sklearn.linear_model.LinearRegression()
+    model.fit(train_data, train_target)
+    predicted = model.predict(test_data)
+    explicit_rmse = sklearn.metrics.mean_squared_error(test_target, predicted, squared = False)
 
     if args.plot:
         import matplotlib.pyplot as plt
