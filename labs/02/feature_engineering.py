@@ -41,55 +41,31 @@ def main(args):
     # In the output, there should be first all the one-hot categorical features,
     # and then the real-valued features. To process different dataset columns
     # differently, you can use `sklearn.compose.ColumnTransformer`.
-    int_train = np.all(train_data.astype(int) == train_data, axis=0)
-    inverse_int_train = [not x for x in int_train]
-
-    int_test = np.all(test_data.astype(int) == test_data, axis=0)
-    inverse_int_test = [not x for x in int_test]
-    int_data = []
-    inverse_data = []
+    bool_train = np.all(train_data.astype(int) == train_data, axis=0)
+    int_train = [i for i, b in enumerate(bool_train) if b]
+    real_train = [i for i, b in enumerate(bool_train) if not b] 
     
-    if (True in int_train) and (True in inverse_int_train):
-        int_data = int_train
-        inverse_data = inverse_int_train
-        transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data)
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data)
-        ct_train = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot, transformer_st])
-    elif (True in int_train):
-        int_data = int_train
-        transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data)
-        ct_train = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot])
-    else:
-        inverse_data = inverse_int_train
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data) 
-        ct_train = sklearn.compose.ColumnTransformer(transformers= [transformer_st])
+    i = "tr"
+    transformers = []
+    for arr, encoder in zip([int_train, real_train], [sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False)]):
         
-    if (True in int_test) and (True in inverse_int_test):
-        int_data = int_test 
-        inverse_data = inverse_int_test
-        transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data) 
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data) 
-        ct_test = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot, transformer_st])
-    elif (True in int_test): 
-        int_data = int_test
-        transformer_onehot = ("first", sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), int_data) 
-        ct_test = sklearn.compose.ColumnTransformer(transformers= [transformer_onehot])
-    else:
-        inverse_data = inverse_int_test
-        transformer_st = ("second", sklearn.preprocessing.StandardScaler(with_mean=False, with_std=False), inverse_data) 
-        ct_test = sklearn.compose.ColumnTransformer(transformers= [transformer_st]) 
+        if len(arr) > 0:
+            transformers.append((i,encoder,arr))
+            i+='a'
     
-    train_data1 = ct_train.fit_transform(train_data)
-    test_data1 = ct_test.fit_transform(test_data)
+    ct = sklearn.compose.ColumnTransformer(transformers = transformers)
+
+    train_data1 = ct.fit_transform(train_data)
+    test_data1 = ct.transform(train_data)
     # TODO: Generate polynomial features of order 2 from the current features.
     # If the input values are [a, b, c, d], you should generate
     # [a^2, ab, ac, ad, b^2, bc, bd, c^2, cd, d^2]. You can generate such polynomial
     # features either manually, or using
     # `sklearn.preprocess.PolynomialFeatures(2, include_bias=False)`.
-    poly_train = sklearn.preprocessing.PolynomialFeatures(2, include_bias=False)
-    poly_test = sklearn.preprocessing.PolynomialFeatures(2, include_bias=False)
-    train_data = poly_train.fit_transform(train_data1)
-    test_data = poly_test.fit_transform(test_data1)
+    
+    poly = sklearn.preprocessing.PolynomialFeatures(2, include_bias=False)
+    train_data = poly.fit_transform(train_data1)
+    test_data = poly.transform(test_data1)
     # TODO: You can wrap all the feature processing steps into one transformer
     # by using `sklearn.pipeline.Pipeline`. Although not strictly needed, it is
     # usually comfortable.
