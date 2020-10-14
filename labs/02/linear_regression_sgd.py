@@ -47,37 +47,29 @@ def main(args):
         # and the SGD update is `weights = weights - args.learning_rate * gradient`.
         # You can assume that `args.batch_size` exactly divides `train_data.shape[0]`.
         i = 0
-        for k in range(train_data.shape[0]//args.batch_size):
-            
-            gradient_sum = 0
-            for offset in range(args.batch_size):
-                index = permutation[i+offset]
-                print("weights")
-                print(weights)
-                print("data")
-                print(train_data[index])
-                print("target")
-                print(train_target)
-                print("transpose")
-                print(np.transpose(train_data[index]))
-                print("first matmul")
-                print(np.transpose(train_data[index]) @ weights)
-                print("sub")
-                print(np.transpose(train_data[index]) @ weights - train_target[index])
-                gradient = ( np.transpose(train_data[index]) @ weights - train_target[index] ) @ train_data[index]
-                gradient_sum += gradient
+        n_batches = train_data.shape[0]//args.batch_size
+        for batch in range(n_batches):
+            gradient_sum = np.zeros(shape = weights.shape)
+
+            for sample in range(args.batch_size):
+                index = permutation[i+sample]
+                predictions = np.transpose(train_data[index]) @ weights
+                gradient_sum += (predictions - train_target[index] ) * train_data[index]
+                
             average_gradient = gradient_sum/args.batch_size
             
             # SGD update
             weights = weights - args.learning_rate * average_gradient
                 
-            i = i + batch_size 
+            i = i + args.batch_size 
 
         # TODO: Append current RMSE on train/test to train_rmses/test_rmses.
         predicted_train = train_data @ weights
         predicted_test = test_data @ weights
+        
         rmse_train = sklearn.metrics.mean_squared_error(train_target, predicted_train, squared=False)
         rmse_test = sklearn.metrics.mean_squared_error(test_target, predicted_test, squared=False)
+        
         train_rmses.append(rmse_train)
         test_rmses.append(rmse_test)
 
