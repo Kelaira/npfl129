@@ -50,13 +50,14 @@ def main(args):
     for arr, encoder in zip([int_train, real_train], [sklearn.preprocessing.OneHotEncoder(sparse=False, handle_unknown="ignore"), sklearn.preprocessing.StandardScaler()]):
         
         if len(arr) > 0:
+            print("OK")
             transformers.append((i,encoder,arr))
             i+='a'
     
-    ct = sklearn.compose.ColumnTransformer(transformers = transformers)
+    ct = sklearn.compose.ColumnTransformer(transformers=transformers)
 
-    train_data1 = ct.fit_transform(train_data)
-    test_data1 = ct.transform(test_data)
+    train_data = ct.fit_transform(train_data)
+    test_data = ct.transform(test_data)
     # TODO: Generate polynomial features of order 2 from the current features.
     # If the input values are [a, b, c, d], you should generate
     # [a^2, ab, ac, ad, b^2, bc, bd, c^2, cd, d^2]. You can generate such polynomial
@@ -64,8 +65,8 @@ def main(args):
     # `sklearn.preprocess.PolynomialFeatures(2, include_bias=False)`.
     
     poly = sklearn.preprocessing.PolynomialFeatures(2, include_bias=False)
-    train_data = poly.fit_transform(train_data1)
-    test_data = poly.transform(test_data1)
+    train_data = poly.fit_transform(train_data)
+    test_data = poly.transform(test_data)
     # TODO: You can wrap all the feature processing steps into one transformer
     # by using `sklearn.pipeline.Pipeline`. Although not strictly needed, it is
     # usually comfortable.
